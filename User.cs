@@ -17,16 +17,14 @@ namespace OfflineMessagingAPI
         public string Id { get; } = ObjectId.GenerateNewId().ToString();
         [BsonElement("username")]
         public string Username { get; set; } = string.Empty;
-        [BsonElement("PasswordHash")]
-        public byte[] PasswordHash { get; set; }
-        [BsonElement("PasswordSalt")]
-        public byte[] PasswordSalt { get; set; }
-        [BsonElement("isBlocked")]
-        public int IsBlocked { get; set; }
+        [BsonElement("Password")]
+        public string Password { get; set; }
+
+        public bool IsBlocked { get; set; }
         [BsonRepresentation(BsonType.DateTime)]
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         [BsonElement("createdDate")]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
+        
     }
 }

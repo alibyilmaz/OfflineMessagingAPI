@@ -12,6 +12,7 @@ namespace OfflineMessagingAPI
     public class Messages
     {
         [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         [BsonElement("message")]
         public string Message { get; set; }
@@ -19,8 +20,8 @@ namespace OfflineMessagingAPI
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         [BsonElement("createdDate")]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-        [ForeignKey(nameof(UserDto))]
-        public Guid UserId { get; set; }
-        public UserDto? User { get; set; }
+        [BsonElement("userId")]
+        public string UserId { get; set; }
+
     }
 }

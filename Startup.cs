@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using OfflineMessagingAPI.Services;
 using OfflineMessagingAPI.Settings;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,8 @@ namespace OfflineMessagingAPI
             services.Configure<MongoSettings>(Configuration.GetSection(nameof(MongoSettings)));
             services.AddSingleton<IMongoSettings>(sp => sp.GetRequiredService<IOptions<MongoSettings>>
                 ().Value);
-
+            services.AddTransient<IUserService, UserService>();
+                services.AddTransient<IMessageService, MessageService>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

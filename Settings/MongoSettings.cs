@@ -9,6 +9,7 @@ namespace OfflineMessagingAPI.Settings
     {
         public string ConnectionString { get; set; }
         public string Database { get ; set; }
-        public string Collection { get ; set; }
+        public string UserCollectionName { get ; set; }
+        public string MessageCollectionName { get ; set; }
     }
 }

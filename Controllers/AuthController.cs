@@ -5,8 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using MongoDB.Driver;
 using OfflineMessagingAPI.Settings;
+using OfflineMessagingAPI.Services;
+using Microsoft.AspNetCore.Authentication;
 
 namespace OfflineMessagingAPI.Controllers
 {
@@ -14,42 +17,63 @@ namespace OfflineMessagingAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IMongoCollection<User> _user;
-        public AuthController(IMongoSettings settings)
-        {
-            MongoClient client = new MongoClient(settings.ConnectionString);
-            var db = client.GetDatabase(settings.Database);
-            _user = db.GetCollection<User>(settings.Collection);
+        private readonly IUserService _userService;
 
+        public AuthController(IUserService userService)
+        {
+            _userService = userService; 
         }
-        public static User user = new User();
+
 
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register(UserDto request)
         {
-            CreatePassHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
-            user.Username = request.Username;
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
-            await _user.InsertOneAsync(user);
-            return Ok();
+            var user = await _userService.GetUserByUserName(request.Username);
+            if (user.Count == 0)
+            {
+                var newUser = new User
+                {
+                    Username = request.Username,
+                    Password = request.Password,
+                };
+                await _userService.Register(newUser);
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("username or pass is invalid");
+            }
+
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserDto request)
-        {
-            if (user.Username != request.Username)
-                return BadRequest("username or pass is invalid");
-            return Ok();
-        }
-        private void CreatePassHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
 
+        public async Task<IActionResult> Login(User user)
+        {
+            var userName = await _userService.GetUserByUserName(user.Username);
+            if (userName.Count == 0)
+            {
+                return BadRequest("username or pass is invalid");
+            }
+            else
+            {
+                return Ok(userName);
             }
         }
+        
+        [HttpPost("blockUser")]
+        public async Task<IActionResult> BlockUser(string userName)
+        {
+            return Ok(await _userService.BlockUser(userName));
+        }
+        //private void CreatePassHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        //{
+        //    using (var hmac = new HMACSHA512())
+        //    {
+        //        passwordSalt = hmac.Key;
+        //        passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+
+        //    }
+        //}
     }
 }
