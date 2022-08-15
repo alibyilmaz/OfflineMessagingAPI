@@ -13,6 +13,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using OfflineMessagingAPI.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using OfflineMessagingAPI.Helper;
+using OfflineMessagingAPI.Interfaces;
 
 namespace OfflineMessagingAPI
 {
@@ -28,15 +36,75 @@ namespace OfflineMessagingAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers(config =>
+            {
+                config.Filters.Add(new TokenFilter());
+            });
+            services.AddScoped<TokenFilter>();
+            services.Configure<JWT>(Configuration.GetSection("JWT"));
             services.Configure<MongoSettings>(Configuration.GetSection(nameof(MongoSettings)));
             services.AddSingleton<IMongoSettings>(sp => sp.GetRequiredService<IOptions<MongoSettings>>
                 ().Value);
             services.AddTransient<IUserService, UserService>();
-                services.AddTransient<IMessageService, MessageService>();
+            services.AddTransient<IBlockService, BlockService>();
+            services.AddTransient<IMessageService, MessageService>();
+            services.AddSingleton<IJwtManagerService, JwtManagerService>();
             services.AddControllers();
+         
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "OfflineMessagingAPI", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Description = "Bearer Authentication with JWT Token",
+                    Type = SecuritySchemeType.Http,
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+
+            });
+            services.AddAuthentication(options =>
+            {
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddCookie(options =>
+                {
+                    options.LoginPath = "/api/auth/login";
+
+                })
+
+                .AddJwtBearer(x =>
+            {
+                var Key = Encoding.UTF8.GetBytes(Configuration["JWT:Key"]);
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["JWT:Issuer"],
+                    ValidAudience = Configuration["JWT:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Key)
+                };
             });
         }
 
@@ -51,7 +119,7 @@ namespace OfflineMessagingAPI
             }
 
             app.UseRouting();
-
+            
             app.UseAuthorization();
             app.UseAuthentication();
             app.UseEndpoints(endpoints =>

@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OfflineMessagingAPI
+namespace OfflineMessagingAPI.Models
 {
     [Table("users")]
     public class User
@@ -19,12 +19,20 @@ namespace OfflineMessagingAPI
         public string Username { get; set; } = string.Empty;
         [BsonElement("Password")]
         public string Password { get; set; }
+        [BsonElement("Token")]
+        public string Token { get; set; }
+        [BsonElement("guid")]
+        public Guid Guid { get; set; }
 
-        public bool IsBlocked { get; set; }
         [BsonRepresentation(BsonType.DateTime)]
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         [BsonElement("createdDate")]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-        
+
+        [BsonRepresentation(BsonType.DateTime)]
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        [BsonElement("validTo")]
+        public DateTime ValidTo { get; set; }
+
     }
 }

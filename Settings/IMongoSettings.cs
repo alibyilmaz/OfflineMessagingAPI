@@ -11,6 +11,7 @@ namespace OfflineMessagingAPI.Settings
         public string Database { get; set; }
         public string UserCollectionName { get; set; }
         public string MessageCollectionName { get; set; }
+        public string BlockUsersCollectionName { get; set; }
 
 
     }

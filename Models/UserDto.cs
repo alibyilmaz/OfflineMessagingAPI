@@ -5,13 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 
-namespace OfflineMessagingAPI
+namespace OfflineMessagingAPI.Models
 {
     public class UserDto
     {
 
         public string Username { get; set; } = string.Empty;
-   
+
         public string Password { get; set; } = string.Empty;
 
 

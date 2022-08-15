@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 
 using MongoDB.Bson;
+using OfflineMessagingAPI.Models;
+using System;
+using OfflineMessagingAPI.Interfaces;
 
 namespace OfflineMessagingAPI.Services
 {
@@ -28,47 +31,35 @@ namespace OfflineMessagingAPI.Services
         {
             return await _user.Find(user => user.Id == id).FirstOrDefaultAsync();
         }
+
+        public async Task UpdateTokenExpireTime(string userName, DateTime validTo)
+        {
+            //var getUser = await _user.Find(user => user.Username == userName).FirstOrDefaultAsync();
+            var filter = Builders<User>.Filter.Eq(u=>u.Username, userName);
+            var updateUser = Builders<User>.Update.Set(u=>u.ValidTo, validTo);
+            await _user.UpdateOneAsync(filter, updateUser);
+        }
+        public async Task UpdateToken(string userName, string Token)
+        {
+            //var getUser = await _user.Find(user => user.Username == userName).FirstOrDefaultAsync();
+            var filter = Builders<User>.Filter.Eq(u => u.Username, userName);
+            var updateUser = Builders<User>.Update.Set(u => u.Token, Token);
+            await _user.UpdateOneAsync(filter, updateUser);
+        }
         public async Task<User> Register(User user)
         {
             await _user.InsertOneAsync(user);
             return user;
         }
-        public async Task<bool> Login(User user)
+
+        public async Task<User> GetUserByToken(string token)
         {
-            var userName = await _user.Find(u => u.Username == user.Username).ToListAsync();
-            if (userName.Count == 0)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+
+            return await _user.Find(user => user.Token == token).FirstOrDefaultAsync();
         }
 
-        [System.Obsolete]
-        public async Task<bool> BlockUser(string userName)
-        {
-            var user = await _user.Find(u => u.Username == userName).FirstOrDefaultAsync();
-            
-            if (user.IsBlocked == false)
-            {
 
-                user.IsBlocked =true;
-                var filter = Builders<User>.Filter.Eq(c => c.Username, userName);
-                var update = Builders<User>.Update.Set(user => user.IsBlocked, true);
-                await _user.UpdateOneAsync(filter, update);
-                return true;
-            }
-            else
-            {
-                user.IsBlocked = true;
-                var filter = Builders<User>.Filter.Eq(c => c.Username, userName);
-                var update = Builders<User>.Update.Set(user => user.IsBlocked, false);
-                await _user.UpdateOneAsync(filter, update);
-                return true;
-            }
 
-        }
+
     }
 }
