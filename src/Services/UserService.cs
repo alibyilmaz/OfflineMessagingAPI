@@ -25,6 +25,7 @@ namespace OfflineMessagingAPI.Services
 
         public async Task<List<User>> GetUserByUserName(string name)
         {
+          
             return await _user.Find(user => user.Username == name).ToListAsync();
         }
         public async Task<User> GetUserByUserId(string id)

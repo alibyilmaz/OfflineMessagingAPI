@@ -41,7 +41,6 @@ namespace OfflineMessagingAPI
                 config.Filters.Add(new TokenFilter());
             });
             services.AddScoped<TokenFilter>();
-            services.Configure<JWT>(Configuration.GetSection("JWT"));
             services.Configure<MongoSettings>(Configuration.GetSection(nameof(MongoSettings)));
             services.AddSingleton<IMongoSettings>(sp => sp.GetRequiredService<IOptions<MongoSettings>>
                 ().Value);
@@ -49,6 +48,7 @@ namespace OfflineMessagingAPI
             services.AddTransient<IBlockService, BlockService>();
             services.AddTransient<IMessageService, MessageService>();
             services.AddSingleton<IJwtManagerService, JwtManagerService>();
+            services.AddSingleton<IActService, ActService>();
             services.AddControllers();
          
             services.AddSwaggerGen(c =>

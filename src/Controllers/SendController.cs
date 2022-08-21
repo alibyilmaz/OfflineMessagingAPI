@@ -2,14 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OfflineMessagingAPI.Models;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MongoDB.Bson.IO;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
 using OfflineMessagingAPI.Helper;
 using OfflineMessagingAPI.Interfaces;
 
@@ -26,75 +21,117 @@ namespace OfflineMessagingAPI.Controllers
         private readonly IMessageService _messageService;
         private readonly IUserService _userService;
         private readonly IBlockService _blockService;
+        private readonly ILogger<SendController> _logger;
+        private readonly IActService _actService;
 
-
-        public SendController(IMessageService messageService, IUserService userService, IBlockService blockService)
+        public SendController(IMessageService messageService, IUserService userService, IBlockService blockService, ILogger<SendController> logger, IActService actService)
         {
             _messageService = messageService;
             _userService = userService;
-            _blockService = blockService;   
+            _blockService = blockService;
+            _logger = logger;
+            _actService = actService;   
         }
 
         [HttpPost("message")]
         [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> SendMessage(Messages message, string userName)
         {
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
-            var userFromToken = await _userService.GetUserByToken(token);
-            var user = await _userService.GetUserByUserName(userName);
-            Guid userId = user.First().Guid;
-            Guid userfromTokenId = userFromToken.Guid;
-            var validTo = userFromToken.ValidTo;
-            message.SenderUser = userFromToken.Username;
-            bool IsBlocked = await _blockService.BlockUserCheck(userfromTokenId, userId);
-            if (validTo < DateTime.UtcNow.AddMinutes(60) && userFromToken != null && IsBlocked == false)
+            try
             {
-                await _messageService.SendMessageByUserName(message, userName);
-                return Ok();
+                var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+                var userFromToken = await _userService.GetUserByToken(token);
+                var user = await _userService.GetUserByUserName(userName);
+                Guid userId = user.First().Guid;
+                Guid userfromTokenId = userFromToken.Guid;
+                var validTo = userFromToken.ValidTo;
+                message.SenderUser = userFromToken.Username;
+                bool IsBlocked = await _blockService.BlockUserCheck(userfromTokenId, userId);
+                if (validTo < DateTime.UtcNow.AddMinutes(60) && userFromToken != null && IsBlocked == false)
+                {
+                    await _messageService.SendMessageByUserName(message, userName);
+                    await _actService.AddAct(new ActModel()
+                    {
+                        Username = userFromToken.Username,
+                        Message = $"message sent to {userName}"
+                    });
+                    return Ok();
+                }
+                else if (IsBlocked == true)
+                {
+                    await _actService.AddAct(new ActModel()
+                    {
+                        Username = userFromToken.Username,
+                        Message = $"message not sent to {userName} because you are blocked"
+                    });
+                    return BadRequest("You are blocked");
+                }
+                else
+                {
+                    return Unauthorized();
+                }
             }
-            else if (IsBlocked == true)
+            catch (Exception ex)
             {
-                return BadRequest("You are blocked");
+                _logger.LogError("an errror while seeding database {Error} {StackTrace}", ex.Message, ex.StackTrace);
+                return BadRequest(ex.Message);
             }
-            else
-            {
-                return Unauthorized();
-            }
+         
         }
         [HttpGet("getSendingMessages")]
         [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetSendingMessage()
         {
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
-            var userFromToken = await _userService.GetUserByToken(token);
-            var userName = userFromToken.Username;
-            var validTo = userFromToken.ValidTo;
-            if (validTo < DateTime.UtcNow.AddMinutes(60) && userFromToken != null)
+            try
             {
-               
-                return Ok(await _messageService.GetSendingMessagesByName(userName));
+                var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+                var userFromToken = await _userService.GetUserByToken(token);
+                var userName = userFromToken.Username;
+                var validTo = userFromToken.ValidTo;
+                if (validTo < DateTime.UtcNow.AddMinutes(60) && userFromToken != null)
+                {
+                    return Ok(await _messageService.GetSendingMessagesByName(userName));
+                }
+                else
+                {
+
+                    return Unauthorized();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return Unauthorized();
+                _logger.LogError("an errror while seeding database {Error} {StackTrace}", ex.Message, ex.StackTrace);
+                return BadRequest(ex.Message);
             }
+
         }
         [HttpGet("getReceivedMessages")]
         [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetReceivingMessage()
         {
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
-            var userFromToken = await _userService.GetUserByToken(token);
-            var userName = userFromToken.Username;
-            var validTo = userFromToken.ValidTo;
-            if (validTo < DateTime.UtcNow.AddMinutes(60) && userFromToken != null)
+            try
             {
+                var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
+                var userFromToken = await _userService.GetUserByToken(token);
+                var userName = userFromToken.Username;
+                var validTo = userFromToken.ValidTo;
+                _logger.LogInformation("Executive action AuthController.GetReceivingMessage()");
+                if (validTo < DateTime.UtcNow.AddMinutes(60) && userFromToken != null)
+                {
 
-                return Ok(await _messageService.GetReceivingMessagesByName(userName));
+                    return Ok(await _messageService.GetReceivingMessagesByName(userName));
+                }
+                else
+                {
+
+
+                    return Unauthorized();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return Unauthorized();
+                _logger.LogError("an errror while seeding database {Error} {StackTrace}", ex.Message, ex.StackTrace);
+                return BadRequest(ex.Message);
             }
         }
     }
