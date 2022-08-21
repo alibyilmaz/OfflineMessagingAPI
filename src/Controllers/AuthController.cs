@@ -89,7 +89,7 @@ namespace OfflineMessagingAPI.Controllers
             try
             {
                 var userFromDb = await _userService.GetUserByUserName(userName);
-                _logger.LogInformation("Executive action AuthController.Login()");
+                
                 if (userFromDb.Count == 0)
                 {
                     await _actService.AddAct(new ActModel()

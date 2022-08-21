@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OfflineMessagingAPI.Helper;
 using OfflineMessagingAPI.Interfaces;
+using OfflineMessagingAPI.Dtos;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -142,10 +143,5 @@ namespace OfflineMessagingAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-    }
-
-    public class MessageDto
-    {
-        public string message { get; set; }
     }
 }
