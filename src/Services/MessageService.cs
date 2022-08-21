@@ -2,10 +2,7 @@
 using OfflineMessagingAPI.Models;
 using OfflineMessagingAPI.Settings;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using OfflineMessagingAPI.Interfaces;
 
 namespace OfflineMessagingAPI.Services
@@ -13,7 +10,7 @@ namespace OfflineMessagingAPI.Services
     public class MessageService : IMessageService
     {
         private readonly IMongoCollection<Messages> _messages;
-        private readonly UserService _userService;
+       
         public MessageService(IMongoSettings settings)
         {
             var client = new MongoClient(settings.ConnectionString);

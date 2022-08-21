@@ -35,10 +35,12 @@ namespace OfflineMessagingAPI.Controllers
 
         [HttpPost("message")]
         [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> SendMessage(Messages message, string userName)
+        public async Task<IActionResult> SendMessage(MessageDto messageDto , string userName)
         {
+            Messages message = new Messages();
             try
             {
+                
                 var token = HttpContext.Request.Headers["Authorization"].ToString().Split(" ")[1];
                 var userFromToken = await _userService.GetUserByToken(token);
                 var user = await _userService.GetUserByUserName(userName);
@@ -49,7 +51,13 @@ namespace OfflineMessagingAPI.Controllers
                 bool IsBlocked = await _blockService.BlockUserCheck(userfromTokenId, userId);
                 if (validTo < DateTime.UtcNow.AddMinutes(60) && userFromToken != null && IsBlocked == false)
                 {
-                    await _messageService.SendMessageByUserName(message, userName);
+                    var prepareMessage = new Messages()
+                    {
+                        Message = messageDto.message,
+                        SenderUser = userFromToken.Username,
+                        ReceiverUser = userName,
+                    };
+                    await _messageService.SendMessageByUserName(prepareMessage, userName);
                     await _actService.AddAct(new ActModel()
                     {
                         Username = userFromToken.Username,
@@ -134,5 +142,10 @@ namespace OfflineMessagingAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
+    }
+
+    public class MessageDto
+    {
+        public string message { get; set; }
     }
 }

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OfflineMessagingAPI", "OfflineMessagingAPI.csproj", "{4CD8BA94-05D1-49A7-A8D3-DDB9FBE38497}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OfflineMessagingAPI.UnitTest", "..\OfflineMessagingAPI.UnitTest\OfflineMessagingAPI.UnitTest.csproj", "{184BBD23-1C6A-4698-8968-59BB0E322810}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{4CD8BA94-05D1-49A7-A8D3-DDB9FBE38497}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CD8BA94-05D1-49A7-A8D3-DDB9FBE38497}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CD8BA94-05D1-49A7-A8D3-DDB9FBE38497}.Release|Any CPU.Build.0 = Release|Any CPU
+		{184BBD23-1C6A-4698-8968-59BB0E322810}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{184BBD23-1C6A-4698-8968-59BB0E322810}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{184BBD23-1C6A-4698-8968-59BB0E322810}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{184BBD23-1C6A-4698-8968-59BB0E322810}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

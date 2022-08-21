@@ -40,17 +40,17 @@ namespace OfflineMessagingAPI.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<ActionResult<User>> Register(UserDto request)
+        public async Task<IActionResult> Register(string userName, string password)
         {
             try
             {
-                var user = await _userService.GetUserByUserName(request.Username);
+                var user = await _userService.GetUserByUserName(userName);
                 if (user.Count == 0)
                 {
                     var newUser = new User
                     {
-                        Username = request.Username,
-                        Password = request.Password,
+                        Username = userName,
+                        Password = password,
                         Guid = Guid.NewGuid()
                     };
                     await _userService.Register(newUser);
@@ -67,7 +67,7 @@ namespace OfflineMessagingAPI.Controllers
                     await _actService.AddAct(new ActModel()
                     {
                         Message = "user not registered",
-                        Username = request.Username
+                        Username = userName
 
                     });
                     return BadRequest("username or pass is invalid");
@@ -84,18 +84,18 @@ namespace OfflineMessagingAPI.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(UserDto user)
+        public async Task<IActionResult> Login(string userName, string password)
         {
             try
             {
-                var userFromDb = await _userService.GetUserByUserName(user.Username);
+                var userFromDb = await _userService.GetUserByUserName(userName);
                 _logger.LogInformation("Executive action AuthController.Login()");
                 if (userFromDb.Count == 0)
                 {
                     await _actService.AddAct(new ActModel()
                     {
                         Message = "user not found",
-                        Username = user.Username
+                        Username = userName
 
                     });
                     return BadRequest("user not found");
@@ -103,7 +103,7 @@ namespace OfflineMessagingAPI.Controllers
                 else
                 {
                     var userLogin = userFromDb.FirstOrDefault();
-                    if (userLogin.Password == user.Password)
+                    if (userLogin.Password == password)
                     {
                         List<Claim> claims = new List<Claim> {
                             new Claim("ID",userLogin.Id),
