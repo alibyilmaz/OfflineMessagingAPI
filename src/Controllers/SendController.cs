@@ -38,7 +38,7 @@ namespace OfflineMessagingAPI.Controllers
         [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> SendMessage(MessageDto messageDto , string userName)
         {
-            Messages message = new Messages();
+          
             try
             {
                 
